@@ -29,31 +29,8 @@ fi
 
 echo "Starting EmbossD v$VERSION on port $PORT, device: $DEVICE"
 
-# Simple HTTP server using netcat
-serve_http() {
-    local request_line
-    local content_length=0
-    local boundary=""
-    local is_post=false
-    
-    # Read HTTP request
-    while IFS= read -r line; do
-        line=$(echo "$line" | tr -d '\r')
-        
-        if [[ -z "$line" ]]; then
-            break
-        fi
-        
-        if [[ "$line" =~ ^POST ]]; then
-            is_post=true
-        elif [[ "$line" =~ ^Content-Length:\ ([0-9]+) ]]; then
-            content_length=${BASH_REMATCH[1]}
-        elif [[ "$line" =~ ^Content-Type:.*boundary=([^;]+) ]]; then
-            boundary=${BASH_REMATCH[1]}
-        fi
-    done
-    
-    # Generate HTML response
+# Generate HTML page
+generate_html() {
     local status_msg=""
     if [[ -f "$LOCK_FILE" ]]; then
         status_msg="<div style='color: red; font-weight: bold;'>Currently printing... Please wait.</div>"
@@ -64,7 +41,8 @@ serve_http() {
         disabled="disabled"
     fi
     
-    local html="<!DOCTYPE html>
+    cat << EOF
+<!DOCTYPE html>
 <html>
 <head>
     <title>EmbossD</title>
@@ -97,33 +75,60 @@ serve_http() {
         </form>
     </div>
 </body>
-</html>"
+</html>
+EOF
+}
+
+# Handle HTTP request
+handle_request() {
+    local method=""
+    local path=""
+    local content_length=0
+    local line
     
-    # Handle POST requests
-    if [[ "$is_post" == true && "$content_length" -gt 0 ]]; then
+    # Read request line
+    read -r line
+    method=$(echo "$line" | cut -d' ' -f1)
+    path=$(echo "$line" | cut -d' ' -f2)
+    
+    # Read headers
+    while read -r line; do
+        line=$(echo "$line" | tr -d '\r')
+        [[ -z "$line" ]] && break
+        
+        if [[ "$line" =~ ^Content-Length:\ ([0-9]+) ]]; then
+            content_length=${BASH_REMATCH[1]}
+        fi
+    done
+    
+    # Handle POST data
+    if [[ "$method" == "POST" && "$content_length" -gt 0 ]]; then
         local post_data
         post_data=$(head -c "$content_length")
         
         if [[ "$post_data" =~ text=([^&]*) ]]; then
             # URL decode the text
             local text="${BASH_REMATCH[1]}"
-            text=$(echo "$text" | sed 's/+/ /g' | sed 's/%20/ /g')
+            text=$(echo "$text" | sed 's/+/ /g' | sed 's/%20/ /g' | sed 's/%0D%0A/\n/g')
             print_text "$text"
-            html="<html><body><h1>EmbossD</h1><p>Text queued for printing!</p><a href='/'>Back</a></body></html>"
-        elif [[ "$post_data" =~ filename=\"([^\"]+)\" ]]; then
-            # Extract file content (simplified - real multipart parsing is complex)
-            local filename="${BASH_REMATCH[1]}"
-            # This is a simplified approach - in practice, multipart parsing is more complex
-            local file_content=$(echo "$post_data" | sed -n '/^$/,$p' | tail -n +2)
-            print_text "$file_content"
-            html="<html><body><h1>EmbossD</h1><p>File '$filename' queued for printing!</p><a href='/'>Back</a></body></html>"
+            
+            # Send response
+            echo "HTTP/1.1 200 OK"
+            echo "Content-Type: text/html"
+            echo "Connection: close"
+            echo ""
+            echo "<html><body><h1>EmbossD v$VERSION</h1><p>Text queued for printing!</p><a href='/'>Back</a></body></html>"
+            return
         fi
     fi
     
-    # Send HTTP response
+    # Send main page
+    local html
+    html=$(generate_html)
     echo "HTTP/1.1 200 OK"
     echo "Content-Type: text/html"
     echo "Content-Length: ${#html}"
+    echo "Connection: close"
     echo ""
     echo "$html"
 }
@@ -152,6 +157,7 @@ print_text() {
 cleanup() {
     echo "Shutting down EmbossD..."
     rmdir "$LOCK_FILE" 2>/dev/null
+    rm -f "/tmp/embossd_pipe" 2>/dev/null
     exit 0
 }
 
@@ -159,5 +165,11 @@ trap cleanup SIGINT SIGTERM
 
 # Start the server
 while true; do
-    serve_http | nc -l -p "$PORT" -q 1
+    {
+        echo "HTTP/1.1 200 OK"
+        echo "Content-Type: text/html"
+        echo "Connection: close"
+        echo ""
+        generate_html
+    } | nc -l -p "$PORT" -q 1
 done
