@@ -2,6 +2,7 @@
 
 # EmbossD - A simple HTTP daemon for braille embossers
 
+VERSION="0.1"
 DEVICE="/dev/usb/lp0"
 PORT=9999
 LOCK_FILE="/tmp/embossd.lock"
@@ -26,7 +27,7 @@ if [[ ! -w "$DEVICE" ]]; then
     exit 1
 fi
 
-echo "Starting EmbossD on port $PORT, device: $DEVICE"
+echo "Starting EmbossD v$VERSION on port $PORT, device: $DEVICE"
 
 # Simple HTTP server using netcat
 serve_http() {
@@ -78,16 +79,18 @@ serve_http() {
 </head>
 <body>
     <div class='container'>
-        <h1>EmbossD</h1>
+        <h1>EmbossD v$VERSION</h1>
         $status_msg
         
         <h2>Print Text</h2>
+        <p><strong>Instructions:</strong> Type or paste your text in the field below, then click Print to send it to your braille embosser.</p>
         <form method='post' action='/print'>
             <input type='text' name='text' placeholder='Enter text to print' required>
             <button type='submit' $disabled>Print</button>
         </form>
         
         <h2>Upload File</h2>
+        <p><strong>Instructions:</strong> Choose a .txt or .brf file from your computer, then click Upload & Print to send its contents to your braille embosser.</p>
         <form method='post' action='/upload' enctype='multipart/form-data'>
             <input type='file' name='file' accept='.txt,.brf' required>
             <button type='submit' $disabled>Upload & Print</button>
