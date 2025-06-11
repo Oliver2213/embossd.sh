@@ -3,6 +3,8 @@
 # EmbossD - A simple HTTP daemon for braille embossers
 
 VERSION="0.1"
+AUTHORS="Blake Oliver"
+SOURCE_URL=""
 DEVICE="/dev/usb/lp0"
 PORT=9999
 LOCK_FILE="/tmp/embossd.lock"
@@ -27,7 +29,7 @@ if [[ ! -w "$DEVICE" ]]; then
     exit 1
 fi
 
-echo "Starting EmbossD v$VERSION on port $PORT, device: $DEVICE"
+echo "Starting EmbossD v$VERSION by $AUTHORS on port $PORT, device: $DEVICE"
 
 # Generate HTML page
 generate_html() {
@@ -58,6 +60,7 @@ generate_html() {
 <body>
     <div class='container'>
         <h1>EmbossD v$VERSION</h1>
+        <p><em>by $AUTHORS</em></p>
         $status_msg
         
         <h2>Print Text</h2>
@@ -73,6 +76,10 @@ generate_html() {
             <input type='file' name='file' accept='.txt,.brf' required>
             <button type='submit' $disabled>Upload & Print</button>
         </form>
+        
+        <footer style='margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 0.9em; color: #666;'>
+            EmbossD v$VERSION by $AUTHORS$(if [[ -n "$SOURCE_URL" ]]; then echo " | <a href='$SOURCE_URL'>Source Code</a>"; fi)
+        </footer>
     </div>
 </body>
 </html>
