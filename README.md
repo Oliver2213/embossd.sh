@@ -37,6 +37,25 @@ Once running, open your browser to `http://localhost:9999` where you can:
 1. **Print Text**: Type or paste text directly into the form and click Print
 2. **Upload Files**: Choose a .txt or .brf file and click Upload & Print
 
+### Command Line Usage with curl
+
+You can also send text or files directly using curl:
+
+```bash
+# Send text directly
+echo "Hello World" | curl -X POST --data-binary @- http://localhost:9999/
+
+# Send a file
+curl -X POST --data-binary @myfile.brf http://localhost:9999/
+
+# Pipe text from another command
+fortune | curl -X POST --data-binary @- http://localhost:9999/
+```
+
+**Status Codes:**
+- `200 OK`: Text successfully queued for printing
+- `503 Service Unavailable`: Printer is busy, try again later
+
 ## File Formats
 
 **Best Results**: Upload pre-formatted BRF (Braille Ready Format) files for optimal braille output.

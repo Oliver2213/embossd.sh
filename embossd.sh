@@ -84,6 +84,8 @@ handle_request() {
     local method=""
     local path=""
     local content_length=0
+    local user_agent=""
+    local is_curl=false
     local line
     
     # Read request line
@@ -98,6 +100,11 @@ handle_request() {
         
         if [[ "$line" =~ ^Content-Length:\ ([0-9]+) ]]; then
             content_length=${BASH_REMATCH[1]}
+        elif [[ "$line" =~ ^User-Agent:\ (.+) ]]; then
+            user_agent="${BASH_REMATCH[1]}"
+            if [[ "$user_agent" =~ curl ]]; then
+                is_curl=true
+            fi
         fi
     done
     
@@ -106,6 +113,32 @@ handle_request() {
         local post_data
         post_data=$(head -c "$content_length")
         
+        # Handle curl requests (raw data)
+        if [[ "$is_curl" == true ]]; then
+            # Check if currently printing
+            if [[ -f "$LOCK_FILE" ]]; then
+                # Return 503 Service Unavailable if busy
+                echo "HTTP/1.1 503 Service Unavailable"
+                echo "Content-Type: text/plain"
+                echo "Connection: close"
+                echo ""
+                echo "Printer busy, try again later"
+                return
+            fi
+            
+            # Print the raw POST data
+            print_text "$post_data"
+            
+            # Return 200 OK for successful queue
+            echo "HTTP/1.1 200 OK"
+            echo "Content-Type: text/plain"
+            echo "Connection: close"
+            echo ""
+            echo "Text queued for printing"
+            return
+        fi
+        
+        # Handle web form data
         if [[ "$post_data" =~ text=([^&]*) ]]; then
             # URL decode the text
             local text="${BASH_REMATCH[1]}"
