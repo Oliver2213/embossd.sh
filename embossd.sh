@@ -205,11 +205,18 @@ trap cleanup SIGINT SIGTERM
 
 # Start the server
 while true; do
-    {
-        echo "HTTP/1.1 200 OK"
-        echo "Content-Type: text/html"
-        echo "Connection: close"
-        echo ""
-        generate_html
-    } | nc -l -p "$PORT" -q 1
+    echo "Waiting for connection on port $PORT..."
+    
+    # Create a named pipe for this connection
+    PIPE="/tmp/embossd_pipe_$$"
+    mkfifo "$PIPE"
+    
+    # Handle the connection
+    nc -l -p "$PORT" < "$PIPE" | handle_request > "$PIPE" &
+    
+    # Wait for the connection to finish
+    wait
+    
+    # Clean up
+    rm -f "$PIPE"
 done
