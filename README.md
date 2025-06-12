@@ -4,15 +4,17 @@ An emboss-over-network webserver, written in shell.
 
 ## Overview
 
-EmbossD provides a web interface to send text and files directly to braille embossers via USB. It was created to make the Braille Blazer and similar embossers more accessible through a simple web form.
+EmbossD provides a web interface to send text and files directly to braille embossers via USB. It was vibe-coded in an afternoon to make the Braille Blazer and similar embossers more accessible through a simple web form, rather than through the cli, which doesn't work for everyone or well on mobile.  
+Set this up, bookmark the address or send it to others on the network and emboss anything you need.
 
 ## Features
 
 - Web interface on port 9999 by default
 - Text input for quick braille printing
 - File upload support for .txt and .brf files
-- Print queue management (prevents concurrent printing)
+- (dumb) print queue management (prevents concurrent printing)
 - Simple setup with minimal dependencies
+- Dockerfile, locally buildable image; run and label it for your favorite dashboard or homepage
 
 ## Usage
 
