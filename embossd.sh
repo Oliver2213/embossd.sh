@@ -1,10 +1,17 @@
 #!/bin/bash
 
-# EmbossD - A simple HTTP daemon for braille embossers
+# EmbossD - An HTTP daemon for braille embossers, in shell!
+# This runs a "so bare there aren't bones" http server to let users emboss text or brf files over the network.
+# You can also post to it with curl and it will print that directly - no web form upload required.
+# Optionally set or add to .env the following:
+# CONTENT_FILE: an html snipet to place above the form and buttons. Disabled instructions by default if provided; SHOW_INSTRUCTIONS=1 to return them.
+# EMBOSSER_MODEL, PAPER_SIZE: included in instructions so people know.
+
+# Written in an afternoon with AI assistance
 
 VERSION="0.1"
 AUTHORS="Blake Oliver"
-SOURCE_URL=""
+SOURCE_URL="https://github.com/Oliver2213/embossd.sh"
 
 # Source .env file if it exists (before setting other variables)
 if [[ -f ".env" ]]; then

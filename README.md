@@ -1,6 +1,6 @@
 # EmbossD
 
-A simple HTTP daemon for braille embossers, making it easier for blind users to print braille documents.
+An emboss-over-network webserver, written in shell.
 
 ## Overview
 
@@ -8,7 +8,7 @@ EmbossD provides a web interface to send text and files directly to braille embo
 
 ## Features
 
-- Web interface on port 9999
+- Web interface on port 9999 by default
 - Text input for quick braille printing
 - File upload support for .txt and .brf files
 - Print queue management (prevents concurrent printing)
@@ -114,6 +114,6 @@ fortune | curl -X POST --data-binary @- http://localhost:9999/
 - **Device not found**: Check USB connection and verify device path with `ls /dev/usb/`
 - **Port in use**: Another service may be using port 9999
 
-## Version
-
-Current version: 0.1
+## Changelog
+### Version 0.1
+**Current release**
