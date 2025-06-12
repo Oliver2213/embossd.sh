@@ -179,14 +179,14 @@ fi)        <h2>Emboss Text</h2>
         $(build_instructions "text")
         <form method='post' action='/print'>
             <input type='text' name='text' placeholder='Enter text to emboss' required>
-            <button type='submit' $disabled>Emboss</button>
+            <button type='submit' $disabled accesskey='e'><u>E</u>mboss</button>
         </form>
         
         <h2>Upload File</h2>
         $(build_instructions "file")
         <form method='post' action='/upload' enctype='multipart/form-data'>
             <input type='file' name='file' accept='.txt,.brf' required>
-            <button type='submit' $disabled>Upload & Emboss</button>
+            <button type='submit' $disabled accesskey='u'><u>U</u>pload & Emboss</button>
         </form>
         
         <footer style='margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 0.9em; color: #666;'>
