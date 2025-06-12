@@ -8,6 +8,14 @@ SOURCE_URL=""
 DEVICE="/dev/usb/lp0"
 PORT=9999
 CONTENT_FILE="${CONTENT_FILE:-}"
+# Check if SHOW_INSTRUCTIONS was explicitly set in environment
+if [[ -n "${SHOW_INSTRUCTIONS:-}" ]]; then
+    SHOW_INSTRUCTIONS_SET=1
+else
+    SHOW_INSTRUCTIONS=1
+fi
+EMBOSSER_MODEL="${EMBOSSER_MODEL:-}"
+PAPER_SIZE="${PAPER_SIZE:-}"
 LOCK_FILE="/tmp/embossd.lock"
 
 # Usage function
@@ -66,7 +74,48 @@ if [[ ! -w "$DEVICE" ]]; then
     exit 1
 fi
 
+# Set SHOW_INSTRUCTIONS to 0 if content file exists and variable wasn't explicitly set
+if [[ -n "$CONTENT_FILE" && -f "$CONTENT_FILE" ]]; then
+    # Only auto-hide instructions if SHOW_INSTRUCTIONS wasn't explicitly set in environment
+    if [[ "${SHOW_INSTRUCTIONS}" == "1" && -z "${SHOW_INSTRUCTIONS_SET:-}" ]]; then
+        SHOW_INSTRUCTIONS=0
+    fi
+fi
+
 echo "Starting EmbossD v$VERSION by $AUTHORS on port $PORT, device: $DEVICE"
+
+# Build instructions text
+build_instructions() {
+    local section="$1"  # "text" or "file"
+    
+    if [[ "$SHOW_INSTRUCTIONS" != "1" ]]; then
+        return
+    fi
+    
+    local base_text=""
+    if [[ "$section" == "text" ]]; then
+        base_text="Type or paste your text in the field below, then click Print to send it to your braille embosser."
+    else
+        base_text="Choose a .txt or .brf file from your computer, then click Upload & Print to send its contents to your braille embosser."
+    fi
+    
+    local extra_info=""
+    if [[ -n "$EMBOSSER_MODEL" || -n "$PAPER_SIZE" ]]; then
+        extra_info=" ("
+        if [[ -n "$EMBOSSER_MODEL" ]]; then
+            extra_info="${extra_info}Embosser model: $EMBOSSER_MODEL"
+        fi
+        if [[ -n "$EMBOSSER_MODEL" && -n "$PAPER_SIZE" ]]; then
+            extra_info="${extra_info}, "
+        fi
+        if [[ -n "$PAPER_SIZE" ]]; then
+            extra_info="${extra_info}Paper size: $PAPER_SIZE"
+        fi
+        extra_info="${extra_info})"
+    fi
+    
+    echo "<p><strong>Instructions:</strong> ${base_text}${extra_info}</p>"
+}
 
 # Generate HTML page
 generate_html() {
@@ -106,14 +155,14 @@ $(if [[ -n "$CONTENT_FILE" && -f "$CONTENT_FILE" ]]; then
     echo "        </div>"
     echo ""
 fi)        <h2>Print Text</h2>
-        <p><strong>Instructions:</strong> Type or paste your text in the field below, then click Print to send it to your braille embosser.</p>
+        $(build_instructions "text")
         <form method='post' action='/print'>
             <input type='text' name='text' placeholder='Enter text to print' required>
             <button type='submit' $disabled>Print</button>
         </form>
         
         <h2>Upload File</h2>
-        <p><strong>Instructions:</strong> Choose a .txt or .brf file from your computer, then click Upload & Print to send its contents to your braille embosser.</p>
+        $(build_instructions "file")
         <form method='post' action='/upload' enctype='multipart/form-data'>
             <input type='file' name='file' accept='.txt,.brf' required>
             <button type='submit' $disabled>Upload & Print</button>
