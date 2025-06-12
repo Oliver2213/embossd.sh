@@ -1,0 +1,38 @@
+[Unit]
+Description=EmbossD - Braille Embosser Web Interface
+Documentation=https://github.com/Oliver2213/embossd.sh
+After=network.target
+Wants=network.target
+
+[Service]
+Type=simple
+User=embossd
+Group=embossd
+WorkingDirectory=/opt/embossd
+ExecStart=/opt/embossd/embossd.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Environment variables (customize as needed)
+Environment=DEVICE=/dev/usb/lp0
+Environment=PORT=9999
+Environment=EMBOSSER_MODEL=
+Environment=PAPER_SIZE=
+Environment=SHOW_INSTRUCTIONS=1
+Environment=CONTENT_FILE=
+
+# Security settings
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/embossd /tmp
+DeviceAllow=/dev/usb/lp0 rw
+DeviceAllow=/dev/ttyUSB0 rw
+DeviceAllow=/dev/ttyACM0 rw
+DevicePolicy=closed
+
+[Install]
+WantedBy=multi-user.target

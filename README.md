@@ -110,11 +110,86 @@ fortune | curl -X POST --data-binary @- http://localhost:9999/
 3. Ensure you have write permissions to the device
 4. Test basic functionality: `echo "test" > /dev/usb/lp0`
 
+## Systemd Service Installation
+
+To run EmbossD as a system service:
+
+### 1. Install EmbossD
+
+```bash
+# Create system user
+sudo useradd -r -s /bin/false embossd
+
+# Create installation directory
+sudo mkdir -p /opt/embossd
+
+# Copy files
+sudo cp embossd.sh /opt/embossd/
+sudo cp embossd.service /etc/systemd/system/
+
+# Set permissions
+sudo chown -R embossd:embossd /opt/embossd
+sudo chmod +x /opt/embossd/embossd.sh
+
+# Add embossd user to dialout group for device access
+sudo usermod -a -G dialout embossd
+```
+
+### 2. Configure the Service
+
+Edit the service file to customize your device and settings:
+
+```bash
+sudo systemctl edit embossd
+```
+
+Add your configuration:
+
+```ini
+[Service]
+Environment=DEVICE=/dev/ttyUSB0
+Environment=EMBOSSER_MODEL=Braille Blazer
+Environment=PAPER_SIZE=8.5x11
+Environment=SHOW_INSTRUCTIONS=0
+```
+
+### 3. Start the Service
+
+```bash
+# Reload systemd configuration
+sudo systemctl daemon-reload
+
+# Enable and start the service
+sudo systemctl enable embossd
+sudo systemctl start embossd
+
+# Check status
+sudo systemctl status embossd
+
+# View logs
+sudo journalctl -u embossd -f
+```
+
+### 4. Service Management
+
+```bash
+# Stop the service
+sudo systemctl stop embossd
+
+# Restart the service
+sudo systemctl restart embossd
+
+# Disable the service
+sudo systemctl disable embossd
+```
+
 ## Troubleshooting
 
 - **Permission denied**: Make sure your user has write access to the device file
 - **Device not found**: Check USB connection and verify device path with `ls /dev/usb/`
 - **Port in use**: Another service may be using port 9999
+- **Service fails to start**: Check logs with `sudo journalctl -u embossd -n 50`
+- **Device access denied**: Ensure the embossd user is in the dialout group and has device permissions
 
 ## Docker Usage
 
