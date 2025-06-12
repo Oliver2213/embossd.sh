@@ -247,16 +247,20 @@ trap cleanup SIGINT SIGTERM
 
 # Start the server
 while true; do    
-    # Create a named pipe for this connection
+    # Create a named pipe for this connection (unique per process ID)
     PIPE="/tmp/embossd_pipe_$$"
     mkfifo "$PIPE"
     
-    # Handle the connection
+    # Handle the connection using bidirectional communication:
+    # - nc listens on PORT and reads responses from the pipe (< "$PIPE")
+    # - HTTP requests from nc are piped to handle_request (|)
+    # - handle_request processes the request and writes response to pipe (> "$PIPE")
+    # - This creates a loop: nc <- pipe <- handle_request <- nc
     nc -l -p "$PORT" < "$PIPE" | handle_request > "$PIPE" &
     
     # Wait for the connection to finish
     wait
     
-    # Clean up
+    # Clean up the temporary pipe
     rm -f "$PIPE"
 done
