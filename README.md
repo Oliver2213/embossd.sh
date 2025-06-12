@@ -114,6 +114,71 @@ fortune | curl -X POST --data-binary @- http://localhost:9999/
 - **Device not found**: Check USB connection and verify device path with `ls /dev/usb/`
 - **Port in use**: Another service may be using port 9999
 
+## Docker Usage
+
+### Quick Start with Docker
+
+```bash
+# Build the image
+docker build -t embossd .
+
+# Run with default settings
+docker run -p 9999:9999 --device=/dev/usb/lp0 embossd
+
+# Run with custom configuration
+docker run -p 8080:8080 --device=/dev/ttyUSB0 \
+  -e PORT=8080 \
+  -e DEVICE=/dev/ttyUSB0 \
+  -e EMBOSSER_MODEL="Braille Blazer" \
+  -e PAPER_SIZE="8.5x11" \
+  embossd
+```
+
+### Docker Compose
+
+Create a `data/` directory for your configuration:
+
+```bash
+mkdir data
+```
+
+Put your `.env` file and any HTML content files in the `data/` directory:
+
+```bash
+# data/.env
+DEVICE=/dev/usb/lp0
+PORT=9999
+EMBOSSER_MODEL=Braille Blazer
+PAPER_SIZE=8.5x11
+SHOW_INSTRUCTIONS=0
+CONTENT_FILE=welcome.html
+```
+
+```bash
+# data/welcome.html
+<h2>Welcome to Our Braille Service</h2>
+<p>This embosser is available for community use.</p>
+```
+
+Then run with docker-compose:
+
+```bash
+docker-compose up -d
+```
+
+The container will automatically use configuration from `data/.env` and serve content files from the `data/` directory.
+
+### Docker Environment Variables
+
+All configuration variables can be set via Docker environment variables:
+
+- `DEVICE` - Embosser device path (default: `/dev/usb/lp0`)
+- `PORT` - Web server port (default: `9999`)
+- `EMBOSSER_MODEL` - Display embosser model in instructions
+- `PAPER_SIZE` - Display paper size in instructions  
+- `SHOW_INSTRUCTIONS` - Show/hide instructions (default: `1`)
+- `CONTENT_FILE` - HTML file to display above forms
+
 ## Changelog
 ### Version 0.1
 **Current release**

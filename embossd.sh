@@ -14,13 +14,21 @@ AUTHORS="Blake Oliver"
 SOURCE_URL="https://github.com/Oliver2213/embossd.sh"
 
 # Source .env file if it exists (before setting other variables)
-if [[ -f ".env" ]]; then
+# Check both current directory and /data directory
+if [[ -f "/data/.env" ]]; then
+    source /data/.env
+elif [[ -f ".env" ]]; then
     source .env
 fi
 
 DEVICE="${DEVICE:-/dev/usb/lp0}"
 PORT="${PORT:-9999}"
-CONTENT_FILE="${CONTENT_FILE:-}"
+# If CONTENT_FILE is set but doesn't exist in current dir, check /data
+if [[ -n "${CONTENT_FILE:-}" && ! -f "$CONTENT_FILE" && -f "/data/$CONTENT_FILE" ]]; then
+    CONTENT_FILE="/data/$CONTENT_FILE"
+else
+    CONTENT_FILE="${CONTENT_FILE:-}"
+fi
 # Check if SHOW_INSTRUCTIONS was explicitly set in environment
 if [[ -n "${SHOW_INSTRUCTIONS:-}" ]]; then
     SHOW_INSTRUCTIONS_SET=1

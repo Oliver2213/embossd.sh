@@ -1,0 +1,20 @@
+# embossd - network embossing
+# Make sure you map *your* printer device
+services:
+  embossd:
+    build: .
+    ports:
+      - "9999:9999"
+    volumes:
+      - ./data:/data
+    devices:
+      # See dmesg when you plug in your embosser / cable
+      - /dev/usb/lp0:/dev/usb/lp0
+    environment:
+      - DEVICE=/dev/usb/lp0
+      - PORT=9999
+      - EMBOSSER_MODEL=
+      - PAPER_SIZE=
+      - SHOW_INSTRUCTIONS=1
+      - CONTENT_FILE=
+    restart: unless-stopped

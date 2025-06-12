@@ -1,2 +1,4 @@
 .aider*
 .env
+data/
+docker-compose.yml
