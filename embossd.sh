@@ -5,8 +5,14 @@
 VERSION="0.1"
 AUTHORS="Blake Oliver"
 SOURCE_URL=""
-DEVICE="/dev/usb/lp0"
-PORT=9999
+
+# Source .env file if it exists (before setting other variables)
+if [[ -f ".env" ]]; then
+    source .env
+fi
+
+DEVICE="${DEVICE:-/dev/usb/lp0}"
+PORT="${PORT:-9999}"
 CONTENT_FILE="${CONTENT_FILE:-}"
 # Check if SHOW_INSTRUCTIONS was explicitly set in environment
 if [[ -n "${SHOW_INSTRUCTIONS:-}" ]]; then
@@ -94,9 +100,9 @@ build_instructions() {
     
     local base_text=""
     if [[ "$section" == "text" ]]; then
-        base_text="Type or paste your text in the field below, then click Print to send it to your braille embosser."
+        base_text="Type or paste your text in the field below, then click Emboss to send it to your braille embosser."
     else
-        base_text="Choose a .txt or .brf file from your computer, then click Upload & Print to send its contents to your braille embosser."
+        base_text="Choose a .txt or .brf file from your computer, then click Upload & Emboss to send its contents to your braille embosser."
     fi
     
     local extra_info=""
@@ -121,7 +127,7 @@ build_instructions() {
 generate_html() {
     local status_msg=""
     if [[ -f "$LOCK_FILE" ]]; then
-        status_msg="<div style='color: red; font-weight: bold;'>Currently printing... Please wait.</div>"
+        status_msg="<div style='color: red; font-weight: bold;'>Currently embossing... Please wait.</div>"
     fi
     
     local disabled=""
@@ -154,18 +160,18 @@ $(if [[ -n "$CONTENT_FILE" && -f "$CONTENT_FILE" ]]; then
     cat "$CONTENT_FILE"
     echo "        </div>"
     echo ""
-fi)        <h2>Print Text</h2>
+fi)        <h2>Emboss Text</h2>
         $(build_instructions "text")
         <form method='post' action='/print'>
-            <input type='text' name='text' placeholder='Enter text to print' required>
-            <button type='submit' $disabled>Print</button>
+            <input type='text' name='text' placeholder='Enter text to emboss' required>
+            <button type='submit' $disabled>Emboss</button>
         </form>
         
         <h2>Upload File</h2>
         $(build_instructions "file")
         <form method='post' action='/upload' enctype='multipart/form-data'>
             <input type='file' name='file' accept='.txt,.brf' required>
-            <button type='submit' $disabled>Upload & Print</button>
+            <button type='submit' $disabled>Upload & Emboss</button>
         </form>
         
         <footer style='margin-top: 40px; padding-top: 20px; border-top: 1px solid #ccc; font-size: 0.9em; color: #666;'>
@@ -232,7 +238,7 @@ handle_request() {
             echo "Content-Type: text/plain"
             echo "Connection: close"
             echo ""
-            echo "Text queued for printing"
+            echo "Text queued for embossing"
             return
         fi
         
@@ -248,7 +254,7 @@ handle_request() {
             echo "Content-Type: text/html"
             echo "Connection: close"
             echo ""
-            echo "<html><body><h1>EmbossD v$VERSION</h1><p>Text queued for printing!</p><a href='/'>Back</a></body></html>"
+            echo "<html><body><h1>EmbossD v$VERSION</h1><p>Text queued for embossing!</p><a href='/'>Back</a></body></html>"
             return
         fi
     fi
@@ -270,7 +276,7 @@ print_text() {
     
     # Create lock file to prevent concurrent printing
     if ! mkdir "$LOCK_FILE" 2>/dev/null; then
-        echo "Another print job is in progress"
+        echo "Another emboss job is in progress"
         return 1
     fi
     
@@ -280,7 +286,7 @@ print_text() {
         echo "$text" > "$DEVICE"
         sleep 1  # Small delay to ensure write completes
         rmdir "$LOCK_FILE"
-        echo "Print job completed"
+        echo "Emboss job completed"
     ) &
 }
 

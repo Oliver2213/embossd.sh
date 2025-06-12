@@ -24,6 +24,25 @@ EmbossD provides a web interface to send text and files directly to braille embo
 
 This starts the daemon on port 9999 using the default device `/dev/usb/lp0`.
 
+### Configuration with .env file
+
+You can create a `.env` file in the same directory to set default values:
+
+```bash
+# Example .env file
+DEVICE=/dev/ttyUSB0
+PORT=8080
+EMBOSSER_MODEL=Braille Blazer
+PAPER_SIZE=8.5x11
+SHOW_INSTRUCTIONS=0
+CONTENT_FILE=welcome.html
+```
+
+Then simply run:
+```bash
+./embossd.sh
+```
+
 ### Command Line Options
 
 ```bash
@@ -47,8 +66,8 @@ This starts the daemon on port 9999 using the default device `/dev/usb/lp0`.
 
 Once running, open your browser to `http://localhost:9999` where you can:
 
-1. **Print Text**: Type or paste text directly into the form and click Print
-2. **Upload Files**: Choose a .txt or .brf file and click Upload & Print
+1. **Emboss Text**: Type or paste text directly into the form and click Emboss
+2. **Upload Files**: Choose a .txt or .brf file and click Upload & Emboss
 
 ### Command Line Usage with curl
 
@@ -66,8 +85,8 @@ fortune | curl -X POST --data-binary @- http://localhost:9999/
 ```
 
 **Status Codes:**
-- `200 OK`: Text successfully queued for printing
-- `503 Service Unavailable`: Printer is busy, try again later
+- `200 OK`: Text successfully queued for embossing
+- `503 Service Unavailable`: Embosser is busy, try again later
 
 ## File Formats
 
