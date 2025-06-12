@@ -24,10 +24,23 @@ EmbossD provides a web interface to send text and files directly to braille embo
 
 This starts the daemon on port 9999 using the default device `/dev/usb/lp0`.
 
-### Custom Device
+### Command Line Options
 
 ```bash
+# Custom device
 ./embossd.sh --device /dev/ttyUSB0
+
+# Custom web port
+./embossd.sh --web-port 8080
+
+# Both custom device and port
+./embossd.sh --device /dev/ttyUSB0 --web-port 8080
+
+# Show version
+./embossd.sh --version
+
+# Show help
+./embossd.sh --help
 ```
 
 ### Web Interface

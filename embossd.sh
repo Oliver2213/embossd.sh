@@ -7,7 +7,30 @@ AUTHORS="Blake Oliver"
 SOURCE_URL=""
 DEVICE="/dev/usb/lp0"
 PORT=9999
+CONTENT_FILE="${CONTENT_FILE:-}"
 LOCK_FILE="/tmp/embossd.lock"
+
+# Usage function
+usage() {
+    echo "EmbossD v$VERSION - A simple HTTP daemon for braille embossers"
+    echo ""
+    echo "Usage: $0 [OPTIONS]"
+    echo ""
+    echo "Options:"
+    echo "  --device PATH     Braille embosser device path (default: $DEVICE)"
+    echo "  --web-port PORT   Web server port (default: $PORT)"
+    echo "  --version         Show version information"
+    echo "  --help            Show this help message"
+    echo ""
+    echo "Author: $AUTHORS"
+    echo ""
+}
+
+# Version function
+show_version() {
+    echo "EmbossD v$VERSION"
+    echo "by $AUTHORS"
+}
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -16,8 +39,22 @@ while [[ $# -gt 0 ]]; do
             DEVICE="$2"
             shift 2
             ;;
+        --web-port)
+            PORT="$2"
+            shift 2
+            ;;
+        --version)
+            show_version
+            exit 0
+            ;;
+        --help)
+            usage
+            exit 0
+            ;;
         *)
-            echo "Usage: $0 [--device /dev/path]"
+            echo "Error: Unknown option $1"
+            echo ""
+            usage
             exit 1
             ;;
     esac
@@ -55,15 +92,20 @@ generate_html() {
         input[type=file] { margin: 10px 0; }
         button { padding: 10px 20px; margin: 5px; }
         button:disabled { opacity: 0.5; }
+        .content-section { margin: 20px 0; padding: 15px; background-color: #f9f9f9; border-left: 4px solid #007cba; }
     </style>
 </head>
 <body>
     <div class='container'>
         <h1>EmbossD v$VERSION</h1>
-        <p><em>by $AUTHORS</em></p>
         $status_msg
         
-        <h2>Print Text</h2>
+$(if [[ -n "$CONTENT_FILE" && -f "$CONTENT_FILE" ]]; then
+    echo "        <div class='content-section'>"
+    cat "$CONTENT_FILE"
+    echo "        </div>"
+    echo ""
+fi)        <h2>Print Text</h2>
         <p><strong>Instructions:</strong> Type or paste your text in the field below, then click Print to send it to your braille embosser.</p>
         <form method='post' action='/print'>
             <input type='text' name='text' placeholder='Enter text to print' required>
@@ -204,9 +246,7 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 # Start the server
-while true; do
-    echo "Waiting for connection on port $PORT..."
-    
+while true; do    
     # Create a named pipe for this connection
     PIPE="/tmp/embossd_pipe_$$"
     mkfifo "$PIPE"
