@@ -179,7 +179,7 @@ fi)        <h2>Emboss Text</h2>
         $(build_instructions "text")
         <form method='post' action='/print'>
             <input type='text' name='text' placeholder='Enter text to emboss' required>
-            <button type='submit' $disabled accesskey='e'><u>E</u>mboss</button>
+            <button type='submit' $disabled accesskey='m'>E<u>m</u>boss</button>
         </form>
         
         <h2>Upload File</h2>
