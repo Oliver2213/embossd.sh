@@ -185,7 +185,7 @@ fi)        <h2>Emboss Text</h2>
         <h2>Upload File</h2>
         $(build_instructions "file")
         <form method='post' action='/upload' enctype='multipart/form-data'>
-            <input type='file' name='file' accept='.txt,.brf' required>
+            <input type='file' name='file' accept='text/plain,application/brf' required>
             <button type='submit' $disabled accesskey='u'><u>U</u>pload & Emboss</button>
         </form>
         
